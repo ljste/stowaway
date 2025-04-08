@@ -1,1 +1,25 @@
+# Rust
 /target
+**/*.rs.bk
+Cargo.lock # (keep this ONLY if library, for bin, it's better to version lockfile)
+# Binaries
+*.exe
+*.dll
+*.dylib
+*.so
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# OS junk
+ehthumbs.db
+Thumbs.db
+
+# Optional
+/tests/output/
+*.log
+
