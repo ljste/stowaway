@@ -1,7 +1,7 @@
 # Rust
 /target
 **/*.rs.bk
-Cargo.lock # (keep this ONLY if library, for bin, it's better to version lockfile)
+Cargo.lock # 
 # Binaries
 *.exe
 *.dll
