@@ -1,9 +1,10 @@
 use anyhow::{Context, Result};
-use tempfile::{tempdir, NamedTempFile};
-use std::{io::Write, path::Path, process::Command};
+use tempfile::{tempdir, NamedTempFile, TempDir};
+use std::{io::Write, path::Path, process::Command, fs};
 
 pub struct Sandbox {
     pub block_net: bool,
+    pub temp_dir: Option<String>,
 }
 
 const SANDBOX_PROFILE: &str = r#"
@@ -13,8 +14,19 @@ const SANDBOX_PROFILE: &str = r#"
 "#;
 
 impl Sandbox {
+    fn create_temp_directory(&self) -> Result<TempDir> {
+        match &self.temp_dir {
+            Some(path) => {
+                fs::create_dir_all(path)?;
+                tempdir().context("Failed to create temporary directory")
+            },
+            None => tempdir().context("Failed to create temporary directory")
+        }
+    }
+
     pub fn run_command(&self, program: &str, args: &[String]) -> Result<()> {
-        let tmp_home = tempdir().context("Failed to create temp dir")?;
+        let tmp_home = self.create_temp_directory()
+            .context("Failed to create temp dir")?;
         let tmp_home_path = tmp_home.path();
 
         let maybe_profile = if self.block_net && cfg!(target_os = "macos") {
@@ -28,7 +40,8 @@ impl Sandbox {
     }
 
     pub fn open_shell(&self) -> Result<()> {
-        let tmp_home = tempdir().context("Failed to create temp dir")?;
+        let tmp_home = self.create_temp_directory()
+            .context("Failed to create temp dir")?;
         let tmp_home_path = tmp_home.path();
 
         let shell_path = std::env::var("SHELL").unwrap_or_else(|_| "/bin/bash".to_string());

@@ -19,10 +19,14 @@ enum Commands {
         args: Vec<String>,
         #[arg(long)]
         block_net: bool,
+        #[arg(long)]
+        temp_dir: Option<String>,
     },
     Shell {
         #[arg(long)]
         block_net: bool,
+        #[arg(long)]
+        temp_dir: Option<String>,
     },
 }
 
@@ -30,12 +34,12 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Run { program, args, block_net } => {
-            let sbx = Sandbox { block_net };
+        Commands::Run { program, args, block_net, temp_dir } => {
+            let sbx = Sandbox { block_net, temp_dir };
             sbx.run_command(&program, &args)?;
         }
-        Commands::Shell { block_net } => {
-            let sbx = Sandbox { block_net };
+        Commands::Shell { block_net, temp_dir } => {
+            let sbx = Sandbox { block_net, temp_dir };
             sbx.open_shell()?;
         }
     }

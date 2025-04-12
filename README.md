@@ -7,6 +7,7 @@
 ## Features
 
 - Launches any program or shell within a **fresh, temporary HOME directory**
+- Optional **custom temporary directory** location
 - Optionally **blocks network access**:
   - On **macOS**, enforced using [`sandbox-exec`](https://developer.apple.com/documentation/security/sandbox_exec)  
   - On other OSes, no network isolation yet
@@ -20,95 +21,43 @@
 ### Run a command in sandbox
 
 ```bash
-cargo run -- run [--block-net] <program> [args...]
+cargo run -- run [--block-net] [--temp-dir <path>] <program> -- [args...]
 ```
 
 - `--block-net`: enforce no outbound network **if on macOS**
-- Example:
+- `--temp-dir`: specify a custom path for the temporary directory
+- Examples:
 
 ```bash
-cargo run -- run curl https://example.com
-```
+# Basic command
+cargo run -- run ls -- -la
 
-```bash
-cargo run -- run --block-net curl https://example.com
+# With network blocking
+cargo run -- run --block-net curl -- https://example.com
+
+# With custom temporary directory
+cargo run -- run --temp-dir ./my-sandbox ls -- -la
+
+# Complex command with multiple arguments
+cargo run -- run python -- -c "print('hello world')"
 ```
 
 ### Launch an interactive shell
 
 ```bash
-cargo run -- shell [--block-net]
+cargo run -- shell [--block-net] [--temp-dir <path>]
 ```
 
 - `--block-net`: disable outbound network in shell (macOS only)
-- Example:
+- `--temp-dir`: specify a custom path for the temporary directory
+- Examples:
 
 ```bash
+# Start shell with network blocking
 cargo run -- shell --block-net
+
+# Start shell with custom sandbox directory
+cargo run -- shell --temp-dir ./debug-sandbox
 ```
 
----
-
-## Notes & Caveats
-
-- **Network block only works on macOS** right now  
-  Uses a built-in `sandbox-exec` profile denying outbound connections.
-- The network sandbox:
-  - Blocks all TCP/UDP outgoing traffic
-  - Works at **kernel level**: it's enforceable
-  - May break programs that require Internet access
-- On **Linux** and other platforms, `--block-net` is currently **NO-OP**
-- All sandboxed processes run inside a **new empty temp `$HOME`**
-- The sandbox **does not** isolate other capabilities:
-  - File system access (besides HOME)
-  - CPU/RAM resource usage
-  - Process capabilities
-- For even more isolation (namespaces, chroots etc.), external tools or future improvements are recommended.
-
----
-
-## Requirements
-
-- **Rust toolchain**
-- **macOS** for network blocking (no extra config needed)
-- On macOS, `sandbox-exec` is used automatically
-
----
-
-## Installation / Building
-
-```bash
-git clone https://github.com/ljste/stowaway.git
-cd stowaway
-cargo build --release
-```
-
-Run with:
-
-```bash
-cargo run -- [COMMAND]
-```
-
----
-
-## Planned / TODO
-
-- Real network-isolation on Linux (via namespaces, seccomp, firejail, nsjail etc.)
-- Filesystem mounts isolation
-- Configurable sandbox policies
-- Profiles to customize restrictions
-- Integration tests
-
----
-
-## Disclaimer
-
-This is **NOT a security boundary** for running malicious code.  
-It is an experiment and a helper for contained environments.  
-Never rely solely on this for isolating dangerous binaries.
-
----
-
-## License
-
-MIT
+**Note**: The `--` separator is required before command arguments to prevent them from being interpreted as arguments to stowaway itself.

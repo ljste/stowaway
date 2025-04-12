@@ -1,5 +1,6 @@
 # Rust
 /target
+/sandbox
 **/*.rs.bk
 Cargo.lock # 
 # Binaries
